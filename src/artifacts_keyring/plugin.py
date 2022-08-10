@@ -10,10 +10,7 @@ import os
 import requests
 import subprocess
 import sys
-import warnings
-import shutil
 
-from . import __version__
 from .support import Popen
 
 
@@ -33,7 +30,7 @@ class CredentialProvider(object):
             self.exe = [tool_path]
         else:
             try:
-                sys_version = tuple(
+                _sys_version = tuple(
                     int(i)
                     for i in subprocess.check_output(["dotnet", "--version"])
                     .decode()
@@ -41,7 +38,9 @@ class CredentialProvider(object):
                     .partition("-")[0]
                     .split(".")
                 )
-                get_runtime_path = lambda: "dotnet"
+
+                def get_runtime_path():
+                    return "dotnet"
             except Exception as e:
                 message = (
                     "Unable to find dependency dotnet, please manually install"
@@ -64,11 +63,15 @@ class CredentialProvider(object):
                 "Unable to find credential provider in the expected path: " + tool_path
             )
 
-    def get_credentials(self, url):
+    def get_credentials(self, url, credentials):
         # Public feed short circuit: return nothing if not getting credentials for the upload endpoint
         # (which always requires auth) and the endpoint is public (can authenticate without credentials).
         if not self._is_upload_endpoint(url) and self._can_authenticate(url, None):
             return None, None
+
+        for cred in credentials.items():
+            if self._can_authenticate(url, cred):
+                return cred[0], cred[1]
 
         # Getting credentials with IsRetry=false; the credentials may come from the cache
         username, password = self._get_credentials_from_credential_provider(
@@ -86,11 +89,13 @@ class CredentialProvider(object):
         # The cached credentials are expired; get fresh ones with IsRetry=true
         return self._get_credentials_from_credential_provider(url, is_retry=True)
 
-    def _is_upload_endpoint(self, url):
+    @staticmethod
+    def _is_upload_endpoint(url):
         url = url[:-1] if url[-1] == "/" else url
         return url.endswith("pypi/upload")
 
-    def _can_authenticate(self, url, auth):
+    @staticmethod
+    def _can_authenticate(url, auth):
         response = requests.get(url, auth=auth)
 
         return (
