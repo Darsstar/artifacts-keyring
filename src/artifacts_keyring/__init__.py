@@ -25,12 +25,11 @@ class ArtifactsKeyringBackend(keyring.backend.KeyringBackend):
         "pkgs.dev.azure.com",
         "pkgs.visualstudio.com",
         "pkgs.codedev.ms",
-        "pkgs.vsts.me"
+        "pkgs.vsts.me",
     )
     _PROVIDER = CredentialProvider
 
     priority = 9.9
-
 
     def __init__(self):
         # In-memory cache of user-pass combination, to allow
@@ -39,7 +38,6 @@ class ArtifactsKeyringBackend(keyring.backend.KeyringBackend):
         # pop from this cache to avoid keeping the value
         # around for longer than necessary.
         self._cache = {}
-
 
     def get_credential(self, service, username):
         try:
@@ -61,7 +59,6 @@ class ArtifactsKeyringBackend(keyring.backend.KeyringBackend):
             self._cache[service, username] = password
             return keyring.credentials.SimpleCredential(username, password)
 
-
     def get_password(self, service, username):
         password = self._cache.get((service, username), None)
         if password is not None:
@@ -73,11 +70,9 @@ class ArtifactsKeyringBackend(keyring.backend.KeyringBackend):
 
         return None
 
-
     def set_password(self, service, username, password):
         # Defer setting a password to the next backend
         raise NotImplementedError()
-
 
     def delete_password(self, service, username):
         # Defer deleting a password to the next backend

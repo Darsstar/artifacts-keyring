@@ -87,7 +87,11 @@ def validating_provider(monkeypatch):
         response.status_code = int(url[:3])
         return response
 
-    monkeypatch.setattr(CredentialProvider, "_get_credentials_from_credential_provider", mock_get_credentials)
+    monkeypatch.setattr(
+        CredentialProvider,
+        "_get_credentials_from_credential_provider",
+        mock_get_credentials,
+    )
     monkeypatch.setattr(requests, "get", mock_requests_get)
 
     yield CredentialProvider()
@@ -151,12 +155,14 @@ def test_cannot_delete_password(passwords, fake_provider):
 
 
 def test_retry_on_invalid_credentials(validating_provider):
-     # No credentials returned when it can already authenticate without them
+    # No credentials returned when it can already authenticate without them
     username, password = validating_provider.get_credentials("200" + SUPPORTED_HOST)
     assert username == None and password == None
 
     # Credentials returned from first call with IsRetry=false
-    username, password = validating_provider.get_credentials("200" + SUPPORTED_HOST + "pypi/upload")
+    username, password = validating_provider.get_credentials(
+        "200" + SUPPORTED_HOST + "pypi/upload"
+    )
     assert password == False
 
     # Credentials returned from second call with IsRetry=true
