@@ -125,6 +125,8 @@ class CredentialProvider(object):
                 "False",
                 "-OutputFormat",
                 "Json",
+                "-Verbosity",
+                "Minimal",
             ],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
